@@ -39,13 +39,16 @@ ul{padding-left:20px}
 <button class="draw" onclick="drawTeams()">⚾ チームを決定</button>
 <button class="draw" onclick="drawTeams()">🔄 もう一度シャッフル</button>
 <button class="copy" onclick="copyResult()">📋 結果をコピー</button>
+<button onclick="clearPlayers()">🗑 全選手削除</button>
 </div>
 <div class="card">
 <div id="result">まだ抽選していません。</div>
 </div>
 </main>
 <script>
-const players=[];
+const KEY='nijigaku_bc_players';
+let players=JSON.parse(localStorage.getItem(KEY)||'[]');
+function savePlayers(){localStorage.setItem(KEY,JSON.stringify(players));}
 function renderPlayers(){
  const ul=document.getElementById('players');
  ul.innerHTML='';
@@ -60,6 +63,7 @@ function addPlayer(){
  const name=document.getElementById('name').value.trim();
  if(!name)return;
  players.push({grade:document.getElementById('grade').value,name});
+ savePlayers();
  document.getElementById('name').value='';
  renderPlayers();
 }
@@ -95,11 +99,21 @@ function drawTeams(){
  });
  window.copyText=txt;
 }
+function clearPlayers(){
+ if(!confirm('全選手を削除しますか？'))return;
+ players=[];
+ localStorage.removeItem(KEY);
+ renderPlayers();
+ document.getElementById('result').innerHTML='まだ抽選していません。';
+}
+
 function copyResult(){
  if(!window.copyText)return;
  navigator.clipboard.writeText(window.copyText);
  alert('コピーしました');
 }
+renderPlayers();
 </script>
 </body>
 </html>
+
