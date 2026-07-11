@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>虹学BC｜チーム振り分け</title>
+<style>
+:root{--navy:#05284d;--red:#c52f32;--bg:#f4f6f8;--line:#d9dee6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif}
+header{background:var(--navy);color:#fff;padding:16px;font-size:22px;font-weight:700}
+main{max-width:1100px;margin:auto;padding:20px;display:grid;grid-template-columns:340px 1fr;gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+label{display:block;margin-top:10px;font-weight:700}
+select,input,button{width:100%;padding:10px;margin-top:6px}
+button{border:0;border-radius:8px;font-weight:700;cursor:pointer}
+.add{background:var(--navy);color:#fff}.draw{background:var(--red);color:#fff}.copy{background:#333;color:#fff}
+ul{padding-left:20px}
+.team{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px;background:#fff}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>⚾ 虹学BC｜チーム振り分け</header>
+<main>
+<div class="card">
+<label>学年</label>
+<select id="grade">
+<option>1年</option><option>2年</option><option>3年</option>
+</select>
+<label>名前</label>
+<input id="name">
+<button class="add" onclick="addPlayer()">＋選手追加</button>
+<p id="count">登録選手数：0名</p>
+<ul id="players"></ul>
+<label>チーム数</label>
+<select id="teams">
+<option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option>
+</select>
+<button class="draw" onclick="drawTeams()">⚾ チームを決定</button>
+<button class="draw" onclick="drawTeams()">🔄 もう一度シャッフル</button>
+<button class="copy" onclick="copyResult()">📋 結果をコピー</button>
+</div>
+<div class="card">
+<div id="result">まだ抽選していません。</div>
+</div>
+</main>
+<script>
+const players=[];
+function renderPlayers(){
+ const ul=document.getElementById('players');
+ ul.innerHTML='';
+ players.forEach(p=>{
+   const li=document.createElement('li');
+   li.textContent=`${p.grade}　${p.name}`;
+   ul.appendChild(li);
+ });
+ document.getElementById('count').textContent=`登録選手数：${players.length}名`;
+}
+function addPlayer(){
+ const name=document.getElementById('name').value.trim();
+ if(!name)return;
+ players.push({grade:document.getElementById('grade').value,name});
+ document.getElementById('name').value='';
+ renderPlayers();
+}
+function shuffle(a){
+ for(let i=a.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [a[i],a[j]]=[a[j],a[i]];
+ }
+}
+function drawTeams(){
+ if(players.length===0)return;
+ const n=parseInt(document.getElementById('teams').value);
+ const arr=[...players];
+ shuffle(arr);
+ const teams=[...Array(n)].map(()=>[]);
+ arr.forEach((p,i)=>teams[i%n].push(p));
+ const order={'1年':1,'2年':2,'3年':3};
+ let txt='';
+ document.getElementById('result').innerHTML='';
+ teams.forEach((team,idx)=>{
+   team.sort((a,b)=>order[a.grade]-order[b.grade]||a.name.localeCompare(b.name,'ja'));
+   txt+=`〈 ${String.fromCharCode(65+idx)}チーム 〉\n\n`;
+   const div=document.createElement('div');
+   div.className='team';
+   let html=`<h3>〈 ${String.fromCharCode(65+idx)}チーム（${team.length}名）〉</h3>`;
+   team.forEach(p=>{
+      html+=`${p.grade}　${p.name}<br>`;
+      txt+=`${p.grade}　${p.name}\n`;
+   });
+   txt+="\n";
+   div.innerHTML=html;
+   document.getElementById('result').appendChild(div);
+ });
+ window.copyText=txt;
+}
+function copyResult(){
+ if(!window.copyText)return;
+ navigator.clipboard.writeText(window.copyText);
+ alert('コピーしました');
+}
+</script>
+</body>
+</html>
